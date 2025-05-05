@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
 
 class MusicPlayer extends ConsumerStatefulWidget {
-  const MusicPlayer({super.key});
+  final VoidCallback? onExpandTap;
+  const MusicPlayer({required this.onExpandTap, super.key});
 
   @override
   ConsumerState<MusicPlayer> createState() => _MusicPlayerState();
@@ -50,11 +51,6 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Calculate times based on song length (just for display)
-    final songDuration = const Duration(minutes: 5);
-    final currentTime =
-        Duration(seconds: (songDuration.inSeconds * currentProgress).round());
-
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -80,7 +76,7 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                   ),
                 ),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
                   child: Container(
                     color: Colors.black.withValues(alpha: 0.7),
                   ),
@@ -101,9 +97,7 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                       IconButton(
                         icon: const Icon(Icons.keyboard_arrow_down,
                             color: Colors.white, size: 32),
-                        onPressed: () {
-                          // Minimize player action
-                        },
+                        onPressed: widget.onExpandTap,
                       ),
                       Text(
                         "NOW PLAYING",
@@ -183,18 +177,18 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                 ),
 
                 // Song info
-                Expanded(
-                  flex: 4,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-                        Text(
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    // horizontal: 32,
+                    vertical: 10,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 15),
+                        child: Text(
                           currentSongNotifier.song_name,
                           style: const TextStyle(
                             fontSize: 28,
@@ -204,8 +198,11 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
+                      ),
+                      const SizedBox(height: 6),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 15),
+                        child: Text(
                           currentSongNotifier.artist,
                           style: TextStyle(
                             fontSize: 18,
@@ -215,9 +212,12 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      ),
 
-                        // Progress bar with gesture detector
-                        StreamBuilder(
+                      // Progress bar with gesture detector
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width,
+                        child: StreamBuilder(
                             stream: currentSong.audioPlayer!.positionStream,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
@@ -228,191 +228,184 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                               final duration =
                                   currentSong.audioPlayer!.duration;
                               final position = snapshot.data;
-                              double sliderValue = 0.0;
-                              if (duration != null && position != null) {
-                                sliderValue = position.inMilliseconds /
-                                    duration.inMilliseconds;
-                              }
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 24),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Stack(
-                                      children: [
-                                        Container(
-                                          height: 6,
-                                          width: sliderValue *
-                                              (MediaQuery.of(context)
-                                                      .size
-                                                      .width -
-                                                  32),
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              colors: [
-                                                hexToColor(currentSongNotifier
-                                                        .hex_code)
-                                                    .withValues(alpha: 0.5),
-                                                hexToColor(currentSongNotifier
-                                                        .hex_code)
-                                                    .withValues(alpha: 1),
-                                              ],
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(3),
-                                          ),
-                                        ),
-                                        Container(
-                                          height: 6,
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width -
-                                              32,
-                                          decoration: BoxDecoration(
-                                            color: Pallete.inactiveSeekColor,
-                                            borderRadius:
-                                                BorderRadius.circular(3),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            formatDuration(snapshot.data!),
-                                            style: TextStyle(
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.6),
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          Text(
-                                            formatDuration(currentSong
-                                                .audioPlayer!.duration!),
-                                            style: TextStyle(
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.6),
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ],
+
+                              return SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 4,
+                                  activeTrackColor:
+                                      hexToColor(currentSongNotifier.hex_code),
+                                  inactiveTrackColor: Pallete.inactiveSeekColor,
+                                  thumbColor:
+                                      hexToColor(currentSongNotifier.hex_code),
+                                  thumbShape: const RoundSliderThumbShape(
+                                      enabledThumbRadius: 8),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                      overlayRadius: 12),
+                                ),
+                                child: Slider(
+                                  value: position != null && duration != null
+                                      ? position.inMilliseconds
+                                          .clamp(0, duration.inMilliseconds)
+                                          .toDouble()
+                                      : 0.0,
+                                  min: 0.0,
+                                  max: duration!.inMilliseconds.toDouble(),
+                                  onChanged: (val) {},
+                                  onChangeEnd: (val) {
+                                    currentSong.audioPlayer!.seek(
+                                      Duration(
+                                        milliseconds: val.toInt(),
                                       ),
-                                    ),
-                                  ],
+                                    );
+                                  },
                                 ),
                               );
                             }),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 12, right: 12),
+                        child: Consumer(
+                          builder: (context, ref, child) {
+                            final currentSong =
+                                ref.watch(currentSongNotifierProvider.notifier);
+                            return StreamBuilder<Duration>(
+                                stream: currentSong.audioPlayer!.positionStream,
+                                builder: (context, snapshot) {
+                                  final position = snapshot.data;
+                                  final duration =
+                                      currentSong.audioPlayer!.duration;
 
-                        // Controls row with animations
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // Shuffle button
-                            IconButton(
-                              icon: Icon(
-                                Icons.shuffle,
-                                color:
-                                    isShuffleOn ? Colors.blue : Colors.white70,
-                                size: 26,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  isShuffleOn = !isShuffleOn;
-                                });
-                              },
-                            ),
+                                  if (position == null || duration == null) {
+                                    return Text("0:00");
+                                  }
 
-                            // Previous button
-                            IconButton(
-                              icon: const Icon(Icons.skip_previous_rounded,
-                                  color: Colors.white, size: 42),
-                              onPressed: () {
-                                // Handle previous song
-                              },
-                            ),
+                                  final remaining = duration - position;
 
-                            // Play/Pause button
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isPlaying = !isPlaying;
-                                  isPlaying
-                                      ? _animationController.forward()
-                                      : _animationController.reverse();
-                                });
-                              },
-                              child: Container(
-                                height: 76,
-                                width: 76,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      hexToColor(currentSongNotifier.hex_code)
-                                          .withValues(alpha: 0.5),
-                                      hexToColor(currentSongNotifier.hex_code),
+                                  return Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        formatDuration(duration),
+                                        style: TextStyle(
+                                            color: Colors.white.withAlpha(150),
+                                            fontSize: 12),
+                                      ),
+                                      Text(
+                                        "- ${formatDuration(remaining)}",
+                                        style: TextStyle(
+                                            color: Colors.white.withAlpha(150),
+                                            fontSize: 12),
+                                      ),
                                     ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.blue.withValues(alpha: 0.5),
-                                      blurRadius: 20,
-                                      spreadRadius: 2,
-                                    ),
+                                  );
+                                });
+                          },
+                        ),
+                      ),
+                      // Controls row with animations
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          // Shuffle button
+                          IconButton(
+                            icon: Icon(
+                              Icons.shuffle,
+                              color: isShuffleOn ? Colors.blue : Colors.white70,
+                              size: 26,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isShuffleOn = !isShuffleOn;
+                              });
+                            },
+                          ),
+
+                          // Previous button
+                          IconButton(
+                            icon: const Icon(Icons.skip_previous_rounded,
+                                color: Colors.white, size: 42),
+                            onPressed: () {
+                              // Handle previous song
+                            },
+                          ),
+
+                          // Play/Pause button
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                isPlaying = !isPlaying;
+                                isPlaying
+                                    ? _animationController.forward()
+                                    : _animationController.reverse();
+                              });
+                            },
+                            child: Container(
+                              height: 76,
+                              width: 76,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    hexToColor(currentSongNotifier.hex_code)
+                                        .withValues(alpha: 0.5),
+                                    hexToColor(currentSongNotifier.hex_code),
                                   ],
                                 ),
-                                child: Center(
-                                  child: GestureDetector(
-                                    onTap: currentSong.playPause,
-                                    child: Icon(
-                                      currentSong.isPlaying
-                                          ? Icons.pause
-                                          : Icons.play_arrow,
-                                      color: Colors.white,
-                                      size: 42,
-                                    ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: hexToColor(
+                                      currentSongNotifier.hex_code,
+                                    ).withValues(alpha: 0.3),
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: GestureDetector(
+                                  onTap: currentSong.playPause,
+                                  child: Icon(
+                                    currentSong.isPlaying
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
+                                    color: Colors.white,
+                                    size: 42,
                                   ),
                                 ),
                               ),
                             ),
+                          ),
 
-                            // Next button
-                            IconButton(
-                              icon: const Icon(Icons.skip_next_rounded,
-                                  color: Colors.white, size: 42),
-                              onPressed: () {
-                                // Handle next song
-                              },
-                            ),
+                          // Next button
+                          IconButton(
+                            icon: const Icon(Icons.skip_next_rounded,
+                                color: Colors.white, size: 42),
+                            onPressed: () {
+                              // Handle next song
+                            },
+                          ),
 
-                            // Repeat button
-                            IconButton(
-                              icon: Icon(
-                                Icons.repeat,
-                                color: isRepeatOn
-                                    ? hexToColor(currentSongNotifier.hex_code)
-                                    : Colors.white70,
-                                size: 26,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  isRepeatOn = !isRepeatOn;
-                                });
-                              },
+                          // Repeat button
+                          IconButton(
+                            icon: Icon(
+                              Icons.repeat,
+                              color: isRepeatOn
+                                  ? hexToColor(currentSongNotifier.hex_code)
+                                  : Colors.white70,
+                              size: 26,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                            onPressed: () {
+                              setState(() {
+                                isRepeatOn = !isRepeatOn;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
 

@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:client/core/constants/server_constants.dart';
 import 'package:client/core/failure/failure.dart';
-import 'package:client/features/auth/models/user_model.dart';
+import 'package:client/core/models/user_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart' show Ref;
 import 'package:fpdart/fpdart.dart';
 import 'package:http/http.dart' as http;
@@ -46,7 +46,7 @@ class AuthRemoteRepository {
     required String email,
     required String password,
   }) async {
-    log("$email $password");
+    // log("$email $password");
     try {
       final response = await http.post(
         Uri.parse(
@@ -56,7 +56,7 @@ class AuthRemoteRepository {
         body: jsonEncode({"email": email, "password": password}),
       );
 
-      log(response.statusCode.toString());
+      // log(response.statusCode.toString());
 
       final jsonDecodeMap = jsonDecode(response.body) as Map<String, dynamic>;
 

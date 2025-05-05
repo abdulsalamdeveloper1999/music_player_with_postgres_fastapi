@@ -1,13 +1,17 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
+import 'package:client/features/home/model/favorite_song_model.dart';
+
 class UserModel {
   final String? id;
   final String? email;
   final String? name;
   final String? token;
+  final List<FavoriteSongModel> favorites;
 
   UserModel({
+    required this.favorites,
     this.token,
     required this.id,
     required this.email,
@@ -25,6 +29,7 @@ class UserModel {
       email: email ?? this.email,
       name: name ?? this.name,
       token: token ?? this.token,
+      favorites: favorites ?? this.favorites,
     );
   }
 
@@ -42,6 +47,11 @@ class UserModel {
       email: map['email'] ?? '',
       name: map['name'] ?? '',
       token: map['token'] ?? '',
+      favorites: List<FavoriteSongModel>.from(
+        (map['favorites'] ?? []).map(
+          (x) => FavoriteSongModel.fromMap(x as Map<String, dynamic>),
+        ),
+      ),
     );
   }
 

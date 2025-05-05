@@ -31,21 +31,21 @@ Future<File?> pickAudio() async {
     isPickingFile = true;
     isCurrentPicking = true;
 
-    log('Pick audio button pressed');
+    // log('Pick audio button pressed');
     final result = await FilePicker.platform.pickFiles(type: FileType.audio);
 
-    log('Audio picker result: $result'); // Log the result
+    // log('Audio picker result: $result'); // Log the result
 
     if (result?.files.isNotEmpty ?? false) {
       final path = result!.files.first.path;
-      log('Picked audio path: $path'); // Log the path of the picked file
+      // log('Picked audio path: $path'); // Log the path of the picked file
       if (path != null) {
         return File(path);
       }
     }
     return null;
   } catch (e) {
-    log('Error picking audio: $e'); // Log the error if something goes wrong
+    // log('Error picking audio: $e'); // Log the error if something goes wrong
     return null;
   } finally {
     if (isCurrentPicking) isPickingFile = false;

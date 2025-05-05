@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:client/core/providers/current_user_notifier.dart';
 import 'package:client/features/auth/widgets/utils.dart';
 import 'package:client/features/home/model/song_model.dart';
+import 'package:client/features/home/repository/home_local_repo.dart';
 import 'package:client/features/home/repository/home_repository.dart';
 import 'package:fpdart/fpdart.dart';
 // ignore: depend_on_referenced_packages
@@ -28,12 +29,29 @@ Future<List<SongModel>> getAllSongs(Ref ref) async {
 }
 
 @riverpod
+Future<List<SongModel>> getAllFavSongs(Ref ref) async {
+  final token = ref.read(currentUserNotifierProvider)?.token;
+  final res = await ref.read(homeRepositoryProvider).getallFavoritesSongs(
+        token: token!,
+      );
+
+  final val = switch (res) {
+    Left(value: final l) => throw l.message,
+    Right(value: final r) => r
+  };
+
+  return val;
+}
+
+@riverpod
 class HomeViewmodel extends _$HomeViewmodel {
+  late HomeLocalRepo _homeLocalRepo;
   late HomeRepository _homeRepository;
 
   @override
   AsyncValue? build() {
     _homeRepository = ref.watch(homeRepositoryProvider);
+    _homeLocalRepo = ref.watch(homeLocalRepoProvider);
     return null;
   }
 
@@ -60,5 +78,29 @@ class HomeViewmodel extends _$HomeViewmodel {
     };
 
     state = val;
+  }
+
+  List<SongModel> getRecentlyPlayedSong() {
+    return _homeLocalRepo.loadSongs();
+  }
+
+  Future<void> favoriteSong(String songId) async {
+    state = AsyncValue.loading();
+    final res = await _homeRepository.toggleFav(
+      songId,
+      ref.read(currentUserNotifierProvider)!.token!,
+    );
+
+    final val = switch (res) {
+      Left(value: final l) => state =
+          AsyncValue.error(l.message, StackTrace.current),
+      Right(value: final r) => state = AsyncValue.data(r)
+    };
+
+    state = val;
+  }
+
+  AsyncValue _favSongSuccess(bool isFavorite, String songId) {
+    return state = AsyncValue.data(isFavorite);
   }
 }

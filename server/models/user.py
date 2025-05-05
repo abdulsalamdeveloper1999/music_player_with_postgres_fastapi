@@ -1,5 +1,6 @@
 from sqlalchemy import TEXT, VARCHAR, Column, LargeBinary
 from models.base import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -9,3 +10,7 @@ class User(Base):
     name=Column(VARCHAR(100))
     email=Column(VARCHAR(100))
     password=Column(LargeBinary)
+
+
+    favorites=relationship('Favorite',back_populates='user')
+    # 🔁 "This user can have many favorite songs, stored in the Favorite table."

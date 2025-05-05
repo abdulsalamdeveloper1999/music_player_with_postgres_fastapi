@@ -47,8 +47,8 @@ class HomeRepository {
         );
 
       final response = await request.send();
-      log('Request sent to: ${request.url}');
-      log('Response status: ${response.statusCode}');
+      // log('Request sent to: ${request.url}');
+      // log('Response status: ${response.statusCode}');
 
       if (response.statusCode != 200) {
         final errorResponse = await response.stream.bytesToString();
@@ -82,6 +82,57 @@ class HomeRepository {
 
       return Right(songs);
     } catch (e) {
+      return Left(AppFailure(e.toString()));
+    }
+  }
+
+  Future<Either<AppFailure, bool>> toggleFav(
+      String songId, String token) async {
+    try {
+      final res = await http.post(Uri.parse('$url/song/favorite'),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': token,
+          },
+          body: jsonEncode({'song_id': songId}));
+      final data = jsonDecode(res.body);
+      if (res.statusCode != 200) {
+        return Left(AppFailure(data['detail']));
+      }
+
+      return Right(data['message'] as bool);
+    } catch (e) {
+      log(e.toString());
+      return Left(AppFailure(e.toString()));
+    }
+  }
+
+  Future<Either<AppFailure, List<SongModel>>> getallFavoritesSongs({
+    required String token,
+  }) async {
+    try {
+      final res = await http.get(
+        Uri.parse('$url/song/list/favorites'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+      );
+
+      if (res.statusCode != 200) {
+        final resBody = jsonDecode(res.body) as Map<String, dynamic>;
+        return Left(AppFailure(resBody['detail']));
+      }
+
+      final List<dynamic> resBody = jsonDecode(res.body);
+
+      // Parse each favorite item -> extract 'song' -> convert to SongModel
+      final List<SongModel> favSongs =
+          resBody.map((e) => SongModel.fromMap(e['song'])).toList();
+
+      return Right(favSongs);
+    } catch (e) {
+      // log(e.toString());
       return Left(AppFailure(e.toString()));
     }
   }

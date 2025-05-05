@@ -1,4 +1,5 @@
 import 'package:client/core/theme/app_pallete.dart';
+import 'package:client/features/home/views/library_page.dart';
 import 'package:client/features/home/views/songs_page.dart';
 import 'package:client/features/home/views/widgets/music_player.dart';
 import 'package:client/features/home/views/widgets/music_slab.dart';
@@ -22,7 +23,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   final pages = [
     const SongsPage(),
-    const Center(child: Text('Library', style: TextStyle(color: Colors.white))),
+    LibraryPage(),
   ];
 
   @override
@@ -148,7 +149,9 @@ class _HomePageState extends ConsumerState<HomePage>
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: isPlayerExpanded && _animation.value > 0.5
-                        ? const MusicPlayer()
+                        ? MusicPlayer(
+                            onExpandTap: _toggleMusicPlayer,
+                          )
                         : MusicSlab(
                             onExpandTap: _toggleMusicPlayer,
                           ),

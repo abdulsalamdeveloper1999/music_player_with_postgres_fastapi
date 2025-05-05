@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:client/core/providers/current_user_notifier.dart';
-import 'package:client/features/auth/models/user_model.dart';
+import 'package:client/core/models/user_model.dart';
 import 'package:client/features/auth/repositories/auth_local_repositories.dart';
 import 'package:client/features/auth/repositories/auth_remote_repository.dart';
 import 'package:fpdart/fpdart.dart';
@@ -48,7 +48,7 @@ class AuthViewModel extends _$AuthViewModel {
       Right(value: final r) => AsyncValue.data(r),
     };
 
-    log(state.toString());
+    // log(state.toString());
   }
 
   Future<void> loginUser({
@@ -70,7 +70,7 @@ class AuthViewModel extends _$AuthViewModel {
       Right(value: final r) => _loginSuccess(r),
     };
 
-    log(state.toString());
+    // log(state.toString());
   }
 
   AsyncValue<UserModel>? _loginSuccess(UserModel user) {

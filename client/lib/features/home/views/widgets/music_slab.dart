@@ -1,6 +1,8 @@
 import 'package:client/core/providers/current_song_notifier.dart';
+import 'package:client/core/providers/current_user_notifier.dart';
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/features/auth/widgets/utils.dart';
+import 'package:client/features/home/viewmodel/home_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,6 +18,8 @@ class MusicSlab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentSongNotifier = ref.watch(currentSongNotifierProvider);
     final currentSong = ref.watch(currentSongNotifierProvider.notifier);
+    final currentUser = ref.watch(currentUserNotifierProvider)?.favorites;
+
     if (currentSongNotifier == null) return const SizedBox.shrink();
 
     return Stack(
@@ -117,11 +121,24 @@ class MusicSlab extends ConsumerWidget {
                       onPressed: currentSong.playPause,
                     ),
                   ),
-                  IconButton(
-                    icon:
-                        const Icon(Icons.favorite_outline, color: Colors.white),
-                    onPressed: () {
-                      // Next song
+                  Consumer(
+                    builder: (_, ref, __) {
+                      return IconButton(
+                        icon: Icon(
+                            currentUser!
+                                    .where((fav) =>
+                                        fav.song_id == currentSongNotifier.id)
+                                    .toList()
+                                    .isNotEmpty
+                                ? Icons.favorite
+                                : Icons.favorite_outline,
+                            color: Colors.white),
+                        onPressed: () async {
+                          await ref
+                              .read(homeViewmodelProvider.notifier)
+                              .favoriteSong(currentSongNotifier.id);
+                        },
+                      );
                     },
                   ),
                   IconButton(

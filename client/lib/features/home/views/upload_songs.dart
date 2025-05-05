@@ -1,5 +1,4 @@
 import 'dart:developer';
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:client/core/theme/app_pallete.dart';
@@ -58,7 +57,6 @@ class _UploadSongsPageState extends ConsumerState<UploadSongsPage> {
 
   @override
   Widget build(BuildContext context) {
-    log('message');
     final isLoading = ref
         .watch(homeViewmodelProvider.select((val) => val?.isLoading == true));
     return Scaffold(
