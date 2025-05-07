@@ -67,7 +67,7 @@ A full-stack music player application featuring a Flutter frontend and a FastAPI
 3. **Run the server:**
    ```bash
    cd server
-   uvicorn main:app --reload
+   fastapi dev main.py
    ```
 
 4. **API Endpoints:**
