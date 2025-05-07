@@ -19,9 +19,9 @@ from sqlalchemy.orm import joinedload
 router = APIRouter()
 
 cloudinary.config( 
-     cloud_name="dpqpnvn8u",
-    api_key="547413896474848",
-    api_secret = "_2u7kTvbnTTxOixZ0C_S4BN0SAs",
+     cloud_name="",
+    api_key="",
+    api_secret = "",
     secure=True
 )
 
