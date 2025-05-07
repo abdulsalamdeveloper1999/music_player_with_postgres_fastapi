@@ -1,6 +1,8 @@
 import 'package:client/core/providers/current_song_notifier.dart';
+import 'package:client/core/providers/current_user_notifier.dart';
 import 'package:client/core/theme/app_pallete.dart';
-import 'package:client/features/auth/widgets/utils.dart';
+import 'package:client/core/widgets/utils.dart';
+import 'package:client/features/home/viewmodel/home_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
@@ -48,8 +50,9 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
   Widget build(BuildContext context) {
     final currentSongNotifier = ref.watch(currentSongNotifierProvider);
     final currentSong = ref.watch(currentSongNotifierProvider.notifier);
-    final screenHeight = MediaQuery.of(context).size.height;
+
     final screenWidth = MediaQuery.of(context).size.width;
+    final currentUser = ref.watch(currentUserNotifierProvider)?.favorites;
 
     return Container(
       decoration: BoxDecoration(
@@ -109,10 +112,69 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.more_vert,
+                        icon: const Icon(Icons.delete,
                             color: Colors.white, size: 28),
                         onPressed: () {
-                          // Show options menu
+                          showAdaptiveDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog.adaptive(
+                                title: Text(
+                                  'Delete Song',
+                                ),
+                                content: Text(
+                                  'Are you sure you want to delete this song? This action cannot be undone.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      if (currentSongNotifier == null) return;
+
+                                      try {
+                                        // 1️⃣ Remote + in-memory delete (playlist, audio, invalidation):
+                                        await ref
+                                            .read(currentSongNotifierProvider
+                                                .notifier)
+                                            .removeSongFromPlaylist(
+                                                currentSongNotifier.id);
+
+                                        // 2️⃣ Local Hive delete + list reload:
+                                        await ref
+                                            .read(
+                                                homeViewmodelProvider.notifier)
+                                            .deleteSongFromLocal(
+                                                currentSongNotifier.id);
+
+                                        // 3️⃣ Close dialog:
+                                        if (context.mounted) {
+                                          Navigator.pop(context);
+                                        }
+                                      } catch (e) {
+                                        showSnackBar(
+                                          content:
+                                              'Error deleting song: ${e.toString()}',
+                                          context: context,
+                                          backgroundColor: Colors.red,
+                                        );
+                                      }
+                                    },
+                                    child: Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                         },
                       ),
                     ],
@@ -186,47 +248,78 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 16),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 15),
-                        child: Text(
-                          currentSongNotifier.song_name,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 15),
+                                child: Text(
+                                  currentSongNotifier.song_name,
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 15),
+                                child: Text(
+                                  currentSongNotifier.artist,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 15),
-                        child: Text(
-                          currentSongNotifier.artist,
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontWeight: FontWeight.w500,
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return IconButton(
+                                icon: Icon(
+                                    currentUser!
+                                            .where((fav) =>
+                                                fav.song_id ==
+                                                currentSongNotifier.id)
+                                            .toList()
+                                            .isNotEmpty
+                                        ? Icons.favorite
+                                        : Icons.favorite_border,
+                                    color: Colors.white70),
+                                onPressed: () async {
+                                  await ref
+                                      .read(homeViewmodelProvider.notifier)
+                                      .favoriteSong(currentSongNotifier.id);
+                                },
+                              );
+                            },
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        ],
                       ),
 
                       // Progress bar with gesture detector
                       SizedBox(
                         width: MediaQuery.of(context).size.width,
                         child: StreamBuilder(
-                            stream: currentSong.audioPlayer!.positionStream,
+                            stream: currentSong.audioPlayer.positionStream,
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 return SizedBox();
                               }
 
-                              final duration =
-                                  currentSong.audioPlayer!.duration;
+                              final duration = currentSong.audioPlayer.duration;
                               final position = snapshot.data;
 
                               return SliderTheme(
@@ -238,26 +331,47 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                                   thumbColor:
                                       hexToColor(currentSongNotifier.hex_code),
                                   thumbShape: const RoundSliderThumbShape(
-                                      enabledThumbRadius: 8),
+                                    enabledThumbRadius: 8,
+                                  ),
                                   overlayShape: const RoundSliderOverlayShape(
-                                      overlayRadius: 12),
+                                    overlayRadius: 12,
+                                  ),
                                 ),
-                                child: Slider(
-                                  value: position != null && duration != null
-                                      ? position.inMilliseconds
-                                          .clamp(0, duration.inMilliseconds)
-                                          .toDouble()
-                                      : 0.0,
-                                  min: 0.0,
-                                  max: duration!.inMilliseconds.toDouble(),
-                                  onChanged: (val) {},
-                                  onChangeEnd: (val) {
-                                    currentSong.audioPlayer!.seek(
-                                      Duration(
-                                        milliseconds: val.toInt(),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(30),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        blurRadius: 10,
                                       ),
-                                    );
-                                  },
+                                      BoxShadow(
+                                        color: hexToColor(
+                                            currentSongNotifier.hex_code),
+                                        blurRadius: 50,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Slider(
+                                    value: position != null && duration != null
+                                        ? position.inMilliseconds
+                                            .clamp(0, duration.inMilliseconds)
+                                            .toDouble()
+                                        : 0.0,
+                                    min: 0.0,
+                                    max: duration?.inMilliseconds.toDouble() ??
+                                        0.0,
+                                    onChanged: (val) {},
+                                    onChangeEnd: (val) {
+                                      currentSong.audioPlayer.seek(
+                                        Duration(
+                                          milliseconds: val.toInt(),
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                               );
                             }),
@@ -269,11 +383,11 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                             final currentSong =
                                 ref.watch(currentSongNotifierProvider.notifier);
                             return StreamBuilder<Duration>(
-                                stream: currentSong.audioPlayer!.positionStream,
+                                stream: currentSong.audioPlayer.positionStream,
                                 builder: (context, snapshot) {
                                   final position = snapshot.data;
                                   final duration =
-                                      currentSong.audioPlayer!.duration;
+                                      currentSong.audioPlayer.duration;
 
                                   if (position == null || duration == null) {
                                     return Text("0:00");
@@ -326,7 +440,9 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                             icon: const Icon(Icons.skip_previous_rounded,
                                 color: Colors.white, size: 42),
                             onPressed: () {
-                              // Handle previous song
+                              ref
+                                  .read(currentSongNotifierProvider.notifier)
+                                  .playPrevious();
                             },
                           ),
 
@@ -384,23 +500,33 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                             icon: const Icon(Icons.skip_next_rounded,
                                 color: Colors.white, size: 42),
                             onPressed: () {
-                              // Handle next song
+                              ref
+                                  .read(currentSongNotifierProvider.notifier)
+                                  .playNext();
                             },
                           ),
 
                           // Repeat button
-                          IconButton(
-                            icon: Icon(
-                              Icons.repeat,
-                              color: isRepeatOn
-                                  ? hexToColor(currentSongNotifier.hex_code)
-                                  : Colors.white70,
-                              size: 26,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                isRepeatOn = !isRepeatOn;
-                              });
+                          Consumer(
+                            builder: (_, ref, __) {
+                              return IconButton(
+                                icon: Icon(
+                                  Icons.repeat,
+                                  color: ref
+                                          .watch(currentSongNotifierProvider
+                                              .notifier)
+                                          .singleLoop
+                                      ? hexToColor(currentSongNotifier.hex_code)
+                                      : Colors.white70,
+                                  size: 26,
+                                ),
+                                onPressed: () {
+                                  ref
+                                      .watch(
+                                          currentSongNotifierProvider.notifier)
+                                      .setLoop();
+                                },
+                              );
                             },
                           ),
                         ],
@@ -408,44 +534,9 @@ class _MusicPlayerState extends ConsumerState<MusicPlayer>
                     ],
                   ),
                 ),
-
-                // Bottom actions
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.devices_outlined,
-                            color: Colors.white70),
-                        onPressed: () {
-                          // Show available devices
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.queue_music,
-                            color: Colors.white70),
-                        onPressed: () {
-                          // Show queue
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.favorite_border,
-                            color: Colors.white70),
-                        onPressed: () {
-                          // Add to favorites
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.share_outlined,
-                            color: Colors.white70),
-                        onPressed: () {
-                          // Share song
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.05,
+                )
               ],
             ),
           ),

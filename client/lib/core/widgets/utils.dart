@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import 'package:permission_handler/permission_handler.dart';
+
 void showSnackBar(
     {required String content,
     required BuildContext context,
@@ -32,7 +34,19 @@ Future<File?> pickAudio() async {
     isCurrentPicking = true;
 
     // log('Pick audio button pressed');
-    final result = await FilePicker.platform.pickFiles(type: FileType.audio);
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: [
+        'wav',
+        'aiff',
+        'alac',
+        'flac',
+        'mp3',
+        'aac',
+        'wma',
+        'ogg'
+      ],
+    );
 
     // log('Audio picker result: $result'); // Log the result
 
@@ -79,4 +93,21 @@ String rgbToHex(Color color) {
 
 Color hexToColor(String hex) {
   return Color(int.parse(hex, radix: 16) + 0xFF000000);
+}
+
+Future<void> requestStoragePermission() async {
+  // Request storage permission
+  PermissionStatus status = await Permission.storage.request();
+
+  // Check the status of the permission request
+  if (status.isGranted) {
+    log("Storage permission granted");
+  } else if (status.isDenied) {
+    log("Storage permission denied");
+    openAppSettings();
+  } else if (status.isPermanentlyDenied) {
+    log("Storage permission permanently denied");
+    // Optionally, open app settings to allow the user to enable the permission
+    openAppSettings();
+  }
 }

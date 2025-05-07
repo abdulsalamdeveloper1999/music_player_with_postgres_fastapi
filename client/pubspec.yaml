@@ -45,9 +45,27 @@ dependencies:
   audio_waveforms: ^1.3.0
   just_audio: ^0.10.2
   hive: ^2.2.3
-  isar_flutter_libs: ^3.1.0+1
+  
+
   path_provider: ^2.1.0
   just_audio_background: ^0.0.1-beta.16
+
+
+  # ✅ Isar Community packages
+  isar:
+    hosted:
+      name: isar
+      url: https://pub.isar-community.dev/
+    version: ^3.0.0
+
+  isar_flutter_libs:
+    hosted:
+      name: isar_flutter_libs
+      url: https://pub.isar-community.dev/
+    version: ^3.0.0
+  permission_handler: ^12.0.0+1
+  
+
 
 
 dev_dependencies:
@@ -62,8 +80,14 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   build_runner:
   # custom_lint:
-  riverpod_generator: ^2.6.5
+  riverpod_generator: ^2.6.3
   # riverpod_lint: ^2.6.5
+    # ✅ Isar Community generator
+  isar_generator:
+    hosted:
+      name: isar_generator
+      url: https://pub.isar-community.dev/
+    version: ^3.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

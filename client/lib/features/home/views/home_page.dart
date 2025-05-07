@@ -1,3 +1,4 @@
+import 'package:client/core/providers/current_song_notifier.dart';
 import 'package:client/core/theme/app_pallete.dart';
 import 'package:client/features/home/views/library_page.dart';
 import 'package:client/features/home/views/songs_page.dart';
@@ -22,13 +23,14 @@ class _HomePageState extends ConsumerState<HomePage>
   late Animation<double> _animation;
 
   final pages = [
-    const SongsPage(),
+    SongsPage(),
     LibraryPage(),
   ];
 
   @override
   void initState() {
     super.initState();
+    selectedIndex = 0;
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -41,6 +43,8 @@ class _HomePageState extends ConsumerState<HomePage>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
+
+    // requestStoragePermission();
   }
 
   @override
@@ -65,44 +69,13 @@ class _HomePageState extends ConsumerState<HomePage>
   Widget build(BuildContext context) {
     final MediaQueryData mediaQuery = MediaQuery.of(context);
     final double screenHeight = mediaQuery.size.height;
+    final currentSong = ref.watch(currentSongNotifierProvider);
 
     return Scaffold(
       backgroundColor: Pallete.backgroundColor,
-      bottomNavigationBar: isPlayerExpanded
-          ? null
-          : BottomNavigationBar(
-              backgroundColor: Pallete.backgroundColor,
-              onTap: (index) {
-                setState(() {
-                  selectedIndex = index;
-                });
-              },
-              currentIndex: selectedIndex,
-              selectedItemColor: Pallete.whiteColor,
-              unselectedItemColor: Pallete.inactiveBottomBarItemColor,
-              items: [
-                BottomNavigationBarItem(
-                  icon: Image.asset(
-                    'assets/images/${selectedIndex == 0 ? 'home_filled.png' : 'home_unfilled.png'}',
-                    color: selectedIndex == 0
-                        ? Pallete.whiteColor
-                        : Pallete.inactiveBottomBarItemColor,
-                    height: 24,
-                  ),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Image.asset(
-                    'assets/images/library.png',
-                    color: selectedIndex == 1
-                        ? Pallete.whiteColor
-                        : Pallete.inactiveBottomBarItemColor,
-                    height: 24,
-                  ),
-                  label: 'Library',
-                )
-              ],
-            ),
+      bottomNavigationBar: (currentSong == null || !isPlayerExpanded)
+          ? _bottomBar() // Extract navigation bar to a method
+          : null,
       body: Stack(
         alignment: Alignment.bottomCenter,
         children: [
@@ -148,13 +121,15 @@ class _HomePageState extends ConsumerState<HomePage>
                   },
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
-                    child: isPlayerExpanded && _animation.value > 0.5
-                        ? MusicPlayer(
-                            onExpandTap: _toggleMusicPlayer,
-                          )
-                        : MusicSlab(
-                            onExpandTap: _toggleMusicPlayer,
-                          ),
+                    child: currentSong != null
+                        ? (isPlayerExpanded && _animation.value > 0.5
+                            ? MusicPlayer(
+                                onExpandTap: _toggleMusicPlayer,
+                              )
+                            : MusicSlab(
+                                onExpandTap: _toggleMusicPlayer,
+                              ))
+                        : const SizedBox.shrink(),
                   ),
                 ),
               );
@@ -162,6 +137,42 @@ class _HomePageState extends ConsumerState<HomePage>
           ),
         ],
       ),
+    );
+  }
+
+  BottomNavigationBar _bottomBar() {
+    return BottomNavigationBar(
+      backgroundColor: Pallete.backgroundColor,
+      onTap: (index) {
+        setState(() {
+          selectedIndex = index;
+        });
+      },
+      currentIndex: selectedIndex,
+      selectedItemColor: Pallete.whiteColor,
+      unselectedItemColor: Pallete.inactiveBottomBarItemColor,
+      items: [
+        BottomNavigationBarItem(
+          icon: Image.asset(
+            'assets/images/${selectedIndex == 0 ? 'home_filled.png' : 'home_unfilled.png'}',
+            color: selectedIndex == 0
+                ? Pallete.whiteColor
+                : Pallete.inactiveBottomBarItemColor,
+            height: 24,
+          ),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Image.asset(
+            'assets/images/library.png',
+            color: selectedIndex == 1
+                ? Pallete.whiteColor
+                : Pallete.inactiveBottomBarItemColor,
+            height: 24,
+          ),
+          label: 'Library',
+        )
+      ],
     );
   }
 }

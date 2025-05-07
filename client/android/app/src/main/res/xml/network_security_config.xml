@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Keep local development access -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+    </domain-config>
+
+    <!-- Add this for Cloudinary -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">res.cloudinary.com</domain>
+    </domain-config>
+</network-security-config>

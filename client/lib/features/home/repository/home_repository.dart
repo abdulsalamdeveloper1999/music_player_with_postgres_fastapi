@@ -102,7 +102,7 @@ class HomeRepository {
 
       return Right(data['message'] as bool);
     } catch (e) {
-      log(e.toString());
+      // log(e.toString());
       return Left(AppFailure(e.toString()));
     }
   }
@@ -133,6 +133,31 @@ class HomeRepository {
       return Right(favSongs);
     } catch (e) {
       // log(e.toString());
+      return Left(AppFailure(e.toString()));
+    }
+  }
+
+  Future<Either<AppFailure, bool>> deleteSong(
+      String songId, String token) async {
+    // log(songId);
+    try {
+      final res = await http.delete(
+        Uri.parse(
+          '$url/song/delete-song/$songId',
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
+      );
+      var resBodyMap = jsonDecode(res.body);
+      if (res.statusCode != 200) {
+        log(resBodyMap['detail'].toString());
+        return Left(AppFailure(resBodyMap['detail']));
+      }
+      return Right(resBodyMap['message'] as bool);
+    } catch (e) {
+      log(e.toString());
       return Left(AppFailure(e.toString()));
     }
   }

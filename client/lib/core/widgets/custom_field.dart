@@ -6,6 +6,8 @@ class CustomField extends StatelessWidget {
   final String? Function(String?)? validator;
   final bool readOnly;
   final Function()? onTap;
+  final bool obscureText;
+  final Widget? prefixIcon;
   const CustomField({
     this.onTap,
     super.key,
@@ -13,16 +15,19 @@ class CustomField extends StatelessWidget {
     required this.hintText,
     this.controller,
     this.validator,
+    this.prefixIcon,
+    this.obscureText = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      obscureText: obscureText,
       onTap: onTap,
       readOnly: readOnly,
       validator: validator,
       controller: controller,
-      decoration: InputDecoration(hintText: hintText),
+      decoration: InputDecoration(hintText: hintText, prefixIcon: prefixIcon),
     );
   }
 }

@@ -18,21 +18,6 @@ class UserModel {
     required this.name,
   });
 
-  UserModel copyWith({
-    String? id,
-    String? email,
-    String? name,
-    String? token,
-  }) {
-    return UserModel(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      name: name ?? this.name,
-      token: token ?? this.token,
-      favorites: favorites ?? this.favorites,
-    );
-  }
-
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'id': id,
@@ -73,4 +58,20 @@ class UserModel {
 
   @override
   int get hashCode => id.hashCode ^ email.hashCode ^ name.hashCode;
+
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? token,
+    List<FavoriteSongModel>? favorites,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      token: token ?? this.token,
+      favorites: favorites ?? this.favorites,
+    );
+  }
 }
