@@ -80,6 +80,15 @@ A full-stack music player application featuring a Flutter frontend and a FastAPI
    - `/song/delete-song/{song_id}` - Delete a song (requires auth)
 
 ---
+<img width="372" alt="Screenshot 2025-05-11 at 6 11 30 pm" src="https://github.com/user-attachments/assets/2d592f1d-40dc-436a-bde3-ba6b44c1f468" />
+<img width="372" alt="Screenshot 2025-05-11 at 6 09 49 pm" src="https://github.com/user-attachments/assets/e55013d8-4c0d-4925-b641-22b35f792f91" />
+<img width="372" alt="Screenshot 2025-05-11 at 6 09 24 pm" src="https://github.com/user-attachments/assets/aeda6f22-dc9b-4fc1-b70a-85e0ecb74600" />
+<img width="372" alt="Screenshot 2025-05-11 at 6 10 04 pm" src="https://github.com/user-attachments/assets/fe7bc36d-e05e-4265-8748-8a27d9589e50" />
+<img width="372" alt="Screenshot 2025-05-11 at 6 10 08 pm" src="https://github.com/user-attachments/assets/294ed597-09ca-4e15-a484-9df1c4fbc6c0" />
+<img width="372" alt="Screenshot 2025-05-11 at 6 11 00 pm" src="https://github.com/user-attachments/assets/7c158ac3-7fe6-4f9b-803a-3092b0f658fb" />
+<img width="372" alt="Screenshot 2025-05-11 at 6 11 04 pm" src="https://github.com/user-attachments/assets/198fd54f-ff44-4724-9c57-64f3ed827a70" />
+<img width="372" alt="Screenshot 2025-05-11 at 6 11 42 pm" src="https://github.com/user-attachments/assets/3b2f9ed8-3f90-43b8-b525-fcb624b9b33c" />
+
 
 ## Frontend Setup (Flutter)
 
